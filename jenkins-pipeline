@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    environment {
+        registryCredential = 'dockerhub-credentials' // DockerHub credentials stored in Jenkins
+        GIT_REPO_URL = 'https://github.com/zbrtsn/basic-to-do-flask.git'
+        DOCKERHUB_REPO = 'pyouck/basic_todo_flask'
+        KUBE_CONFIG = '/home/zub/.kube/config' // Adjust the path to your kubeconfig
+    }
+
+    stages {
+        stage('Clone Git Repository') {
+            steps {
+                git url: "${GIT_REPO_URL}", branch: 'latest'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('.') {
+                        // Build the Docker image with --no-cache
+                        sh 'docker build -t ${DOCKERHUB_REPO}:latest --no-cache .'
+                    }
+                    
+                }
+            }
+        }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        sh 'docker push ${DOCKERHUB_REPO}:latest'
+                    }
+                }
+            }
+        }
+
+        stage('Update Kubernetes Deployment') {
+            steps {
+                sh 'kubectl delete -f /home/zub/ProgramFiles/b_flask/k8s/kind/kind-deployment.yaml --kubeconfig=${KUBE_CONFIG}'
+                sh 'kubectl apply -f /home/zub/ProgramFiles/b_flask/k8s/kind/kind-deployment.yaml --kubeconfig=${KUBE_CONFIG}'
+
+            }
+        }
+
+        stage('Run Flask Application') {
+            steps {
+                sh 'kubectl delete -f /home/zub/ProgramFiles/b_flask/k8s/kind/kind-service.yaml --kubeconfig=${KUBE_CONFIG}'
+                sh 'kubectl apply -f /home/zub/ProgramFiles/b_flask/k8s/kind/kind-service.yaml --kubeconfig=${KUBE_CONFIG}
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
