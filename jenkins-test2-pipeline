@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        registryCredential = 'dockerhub-credentials' // all the docker hub username and password are in here
+        GIT_REPO_URL = 'https://mtgit.mediatriple.net/zubeyir.tosun/basic-to-do-flask2.git' // just classic repo url
+        DOCKERHUB_REPO = 'pyouck/basic_todo_flask'
+        KUBE_CONFIG = '/home/zub/.kube/config' // Adjust the path to your kubeconfig
+    }
+
+    stages {
+        stage('Clone Git Repository') {
+            steps {
+                git url: "${GIT_REPO_URL}", branch: 'latest'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('.') {
+                        // Build the Docker image with --no-cache
+                        sh 'docker build -t ${DOCKERHUB_REPO}:test --no-cache .'
+                    }
+                    
+                }
+            }
+        }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        sh 'docker push ${DOCKERHUB_REPO}:test'
+                    }
+                }
+            }
+        }
+        
+        stage('Activate Ansible') {
+            steps {
+                sh 'ansible-playbook -i /home/zub/ProgramFiles/b_ansible/inv/inventory.ini kindnetes.yml -b'
+                
+            }
+        }
+        
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
