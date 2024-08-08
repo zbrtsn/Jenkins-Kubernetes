@@ -39,7 +39,7 @@ pipeline {
 
         stage('Update Kubernetes Deployment') {
             steps {
-                sh 'kubectl delete -f /home/zub/ProgramFiles/b_flask/k8s/kind/kind-deployment.yaml --kubeconfig=${KUBE_CONFIG}'
+                sh 'kubectl delete -f /home/zub/ProgramFiles/b_flask/k8s/kind/kind-deployment.yaml --kubeconfig=${KUBE_CONFIG}' // first deleting it for not making any mistakes. You don't have to do that.
                 sh 'kubectl apply -f /home/zub/ProgramFiles/b_flask/k8s/kind/kind-deployment.yaml --kubeconfig=${KUBE_CONFIG}'
 
             }
