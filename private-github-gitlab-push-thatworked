@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    environment {
+        registryCredential = 'dockerhub-credentials' // DockerHub credentials stored in Jenkins
+        GIT_REPO_URL = 'https://mtgit.mediatriple.net/zubeyir.tosun/private-basic-to-do-flask.git'
+        DOCKERHUB_REPO = 'pyouck/basic_todo_flask'
+    }
+
+    stages {
+        stage('Clone Git Repository') {
+            steps {
+                git branch: 'latest', credentialsId: 'gitlab-token', url: "${GIT_REPO_URL}" // you can add "gitlab-token" in Manage Jenkins --> Credentials --> Global --> Add Credentials --> Username with password and id = gitlab-token
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('.') {
+                        // Build the Docker image with --no-cache
+                        sh 'docker build -t ${DOCKERHUB_REPO}:test2 --no-cache .'
+                    }
+                    
+                }
+            }
+        }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        sh 'docker push ${DOCKERHUB_REPO}:test2'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
