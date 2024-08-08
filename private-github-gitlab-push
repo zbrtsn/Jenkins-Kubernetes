@@ -12,3 +12,5 @@ pipeline {
                 // you can add "gitlab-token" in Manage Jenkins --> Credentials --> Global --> Add Credentials --> Username with password and id = gitlab-token
             }
         }
+    }
+}
