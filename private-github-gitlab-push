@@ -1,21 +1,14 @@
-pipeline {
+ipeline {
     agent any
+
     environment {
-        GITLAB_TOKEN = credentials('gitlab-token') // Jenkins'te tanımladığınız kimlik bilgisi kimliği
+        GIT_REPO_URL = 'https://mtgit.mediatriple.net/zubeyir.tosun/private-basic-to-do-flask.git'
     }
+
     stages {
-        stage('Clone Repository') {
+        stage('Clone Git Repository') {
             steps {
-                script {
-                    // GitLab repository URL'sini kendi deponuzun URL'si ile değiştirin
-                    def repoUrl = "https://gitlab.com/username/repo.git"
-                    
-                    // Klonlama işlemi
-                    sh """
-                    git clone https://\$GITLAB_TOKEN@gitlab.com/username/repo.git
-                    """
-                }
+                git branch: 'latest', credentialsId: 'gitlab-token', url: "${GIT_REPO_URL}" 
+                // you can add "gitlab-token" in Manage Jenkins --> Credentials --> Global --> Add Credentials --> Username with password and id = gitlab-token
             }
         }
-    }
-}
