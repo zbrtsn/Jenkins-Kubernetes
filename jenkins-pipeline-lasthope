@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        registryCredential = 'dockerhub-credentials'
+        GIT_REPO_URL = 'https://github.com/zbrtsn/basic-to-do-flask.git'
+        DOCKERHUB_REPO = 'pyouck/basic_todo_flask'
+    }
+
+    stages {
+        stage('Clone Git Repository') {
+            steps {
+                git url: "${GIT_REPO_URL}", branch: 'latest'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${DOCKERHUB_REPO}")
+                    //sh 'docker build -t ${DOCKERHUB_REPO}:latest --no-cache .'
+                    
+                    //dir('.') {
+                        // Build the Docker image with --no-cache
+                        //sh 'docker build -t ${DOCKERHUB_REPO}:latest --no-cache .'
+                    //}
+                    
+                }
+            }
+        }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    //docker.withRegistry('', registryCredential) {
+                        //dockerImage.push('latest')
+                    //}
+                    docker.withRegistry('', registryCredential) {
+                        dockerImage.push("latest")
+                        //sh 'docker push ${DOCKERHUB_REPO}:latest'
+                    }
+                }
+            }
+        }
+
+        
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
