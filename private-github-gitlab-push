@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+    environment {
+        GITLAB_TOKEN = credentials('gitlab-token') // Jenkins'te tanımladığınız kimlik bilgisi kimliği
+    }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    // GitLab repository URL'sini kendi deponuzun URL'si ile değiştirin
+                    def repoUrl = "https://gitlab.com/username/repo.git"
+                    
+                    // Klonlama işlemi
+                    sh """
+                    git clone https://\$GITLAB_TOKEN@gitlab.com/username/repo.git
+                    """
+                }
+            }
+        }
+    }
+}
